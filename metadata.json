@@ -1,8 +1,6 @@
 {
-  "name": "MODELO  SALÃO DE BELEZA",
+  "name": "AURUM Maison de Beauté & Gestão VIP",
   "description": "Plataforma de alta sofisticação para Salão de Beleza de Alto Padrão com agendamento online inteligente, integração WhatsApp e Painel Administrativo completo para gestão de horários, estoque, financeiro e fidelidade.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
