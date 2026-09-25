@@ -98,11 +98,8 @@ export const SalonProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [preselectedServiceId, setPreselectedServiceId] = useState<string | null>(null);
 
-  // Demo Guide Modal opens automatically on first load (or if triggered)
-  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState<boolean>(() => {
-    const seen = sessionStorage.getItem('aurum_demo_seen');
-    return !seen;
-  });
+  // Demo Guide Modal opens automatically on every new entry so prospect clients always see the tutorial
+  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState<boolean>(true);
 
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
 
@@ -304,6 +301,7 @@ export const SalonProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setStock(INITIAL_STOCK);
     setLoyaltyClients(INITIAL_LOYALTY_CLIENTS);
     setFinancials(INITIAL_FINANCIALS);
+    setIsDemoGuideOpen(true);
     showToast(`Dados de demonstração restaurados para o padrão original!`, 'info');
   };
 

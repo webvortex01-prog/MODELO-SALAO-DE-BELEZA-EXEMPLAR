@@ -7,27 +7,19 @@ import {
   TrendingUp, 
   Crown, 
   Users, 
-  Settings, 
   Plus, 
-  Search, 
-  Filter, 
   CheckCircle2, 
   Clock, 
   AlertTriangle, 
   MessageCircle, 
   ChevronRight, 
   Trash2, 
-  Edit3, 
   RotateCcw,
   Sparkles,
   ArrowUpRight,
-  TrendingDown,
-  Gift,
-  DollarSign,
-  UserCheck
+  DollarSign
 } from 'lucide-react';
-import { AppointmentStatus, StockProduct, LoyaltyTier } from '../../types/salon';
-import { SALON_INFO } from '../../data/initialData';
+import { AppointmentStatus } from '../../types/salon';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -76,10 +68,6 @@ export const AdminDashboard: React.FC = () => {
   const [newProdMin, setNewProdMin] = useState(5);
   const [newProdCost, setNewProdCost] = useState(120);
   const [newProdPrice, setNewProdPrice] = useState(250);
-
-  // Loyalty Add Points Modal State
-  const [selectedLoyaltyClient, setSelectedLoyaltyClient] = useState<any>(null);
-  const [pointsToAdd, setPointsToAdd] = useState<number>(100);
 
   // Today's stats calculation
   const todayStr = new Date().toISOString().split('T')[0];
@@ -135,29 +123,39 @@ export const AdminDashboard: React.FC = () => {
     setNewProdName('');
   };
 
+  const filteredAppointments = appointments.filter(a => {
+    if (specialistFilter !== 'todos' && a.specialistId !== specialistFilter) return false;
+    if (statusFilter !== 'todos' && a.status !== statusFilter) return false;
+    return true;
+  });
+
+  const filteredStock = stock.filter(
+    item => stockCategoryFilter === 'todos' || item.category === stockCategoryFilter
+  );
+
   return (
-    <div className="min-h-screen bg-[#0A0A0C] text-[#E8E6E3] pt-20 pb-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0A0A0C] text-[#E8E6E3] pt-16 sm:pt-20 pb-28 sm:pb-20 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         
         {/* Top Admin Header Bar */}
-        <div className="bg-[#121216] border border-white/10 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg shadow-black/40">
+        <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg shadow-black/40">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Maison Direção Executiva</span>
+              <span className="text-[11px] sm:text-xs font-bold text-[#D4AF37] uppercase tracking-wider">Maison Direção Executiva (CEO)</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">
+            <h1 className="text-xl sm:text-3xl font-serif font-bold text-white">
               Painel de Gestão AURUM
             </h1>
             <p className="text-xs text-stone-400">
-              Controle automatizado de agenda, estoque, fluxo de caixa e programa de fidelidade VIP.
+              Controle completo de agenda, estoque de produtos, relatórios financeiros e programa de fidelidade VIP.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setCurrentView('client')}
-              className="px-4 py-2 text-xs font-semibold text-stone-200 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all flex items-center gap-2"
+              className="flex-1 sm:flex-none px-3.5 sm:px-4 py-2 text-xs font-semibold text-stone-200 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all flex items-center justify-center gap-2"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Ver Site da Cliente</span>
@@ -165,23 +163,23 @@ export const AdminDashboard: React.FC = () => {
 
             <button
               onClick={resetDemoData}
-              className="px-3.5 py-2 text-xs font-medium text-stone-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all flex items-center gap-1.5"
+              className="px-3 py-2 text-xs font-medium text-stone-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all flex items-center justify-center gap-1.5"
               title="Restaura os dados originais de exemplo"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Resetar Dados</span>
+              <span className="hidden sm:inline">Resetar</span>
             </button>
           </div>
         </div>
 
-        {/* Admin Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-white/10">
+        {/* Admin Navigation Tabs (Scrollable on mobile) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-white/10 -mx-3 px-3 sm:mx-0 sm:px-0">
           {[
             { id: 'overview', label: 'Visão Geral & Métricas', icon: LayoutDashboard },
             { id: 'calendar', label: 'Agenda & Horários', icon: Calendar, badge: appointments.length },
             { id: 'stock', label: 'Controle de Estoque', icon: Package, alert: lowStockItems.length > 0 },
             { id: 'financial', label: 'Relatórios Financeiros', icon: TrendingUp },
-            { id: 'loyalty', label: 'Club Privilège (Fidelidade)', icon: Crown },
+            { id: 'loyalty', label: 'Club Privilège (VIP)', icon: Crown },
             { id: 'team', label: 'Equipe & Comissões', icon: Users },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -190,7 +188,7 @@ export const AdminDashboard: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setAdminTab(tab.id as any)}
-                className={`px-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl whitespace-nowrap transition-all flex items-center gap-2 ${
+                className={`px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-xl whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
                   isActive
                     ? 'bg-gold-gradient text-[#0D0D10] font-bold shadow-md shadow-[#D4AF37]/20'
                     : 'text-stone-400 hover:text-white bg-white/[0.02] hover:bg-white/[0.06] border border-white/5'
@@ -199,7 +197,7 @@ export const AdminDashboard: React.FC = () => {
                 <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
                 {tab.badge !== undefined && (
-                  <span className={`text-[11px] px-1.5 py-0.2 rounded-full tabular-nums ${isActive ? 'bg-black/20 text-[#0D0D10]' : 'bg-white/10 text-stone-300'}`}>
+                  <span className={`text-[10px] sm:text-[11px] px-1.5 py-0.2 rounded-full tabular-nums ${isActive ? 'bg-black/20 text-[#0D0D10]' : 'bg-white/10 text-stone-300'}`}>
                     {tab.badge}
                   </span>
                 )}
@@ -213,12 +211,12 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 1: VISÃO GERAL & MÉTRICAS */}
         {adminTab === 'overview' && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             
             {/* Metric Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-stone-400 text-xs">
                   <span>Faturamento (Setembro)</span>
                   <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
@@ -234,7 +232,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-stone-400 text-xs">
                   <span>Lucro Líquido Estimado</span>
                   <div className="p-2 rounded-lg bg-[#D4AF37]/10 text-[#D4AF37]">
@@ -247,7 +245,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-xs text-stone-400">Margem líquida de 35.0%</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-stone-400 text-xs">
                   <span>Ticket Médio por Cliente</span>
                   <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
@@ -260,7 +258,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-xs text-stone-400">Alto poder aquisitivo</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-2">
                 <div className="flex items-center justify-between text-stone-400 text-xs">
                   <span>Atendimentos Hoje</span>
                   <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
@@ -277,7 +275,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Quick Actions & Low Stock Banner */}
             {lowStockItems.length > 0 && (
-              <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
                   <div>
@@ -289,7 +287,7 @@ export const AdminDashboard: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setAdminTab('stock')}
-                  className="px-4 py-1.5 text-xs font-semibold text-rose-200 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded-lg transition-colors whitespace-nowrap"
+                  className="w-full sm:w-auto px-4 py-2 text-xs font-semibold text-rose-200 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded-lg transition-colors whitespace-nowrap text-center"
                 >
                   Gerenciar Estoque
                 </button>
@@ -297,37 +295,37 @@ export const AdminDashboard: React.FC = () => {
             )}
 
             {/* Today's Schedule Overview + Top Stylists Preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
               
               {/* Today's appointments list */}
-              <div className="lg:col-span-8 bg-[#121216] border border-white/10 rounded-2xl p-6 space-y-4">
+              <div className="lg:col-span-8 bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-serif font-bold text-white">Agenda do Dia ({todayStr.split('-').reverse().join('/')})</h3>
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white">Agenda do Dia ({todayStr.split('-').reverse().join('/')})</h3>
                     <p className="text-xs text-stone-400">Atendimentos programados para hoje na Maison</p>
                   </div>
                   <button
                     onClick={() => setAdminTab('calendar')}
                     className="text-xs text-[#D4AF37] hover:underline flex items-center gap-1 font-semibold"
                   >
-                    <span>Ver Agenda Completa</span>
+                    <span>Ver Tudo</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 <div className="space-y-3">
                   {todayAppointments.length === 0 ? (
-                    <div className="text-center py-8 text-stone-500 text-sm">
+                    <div className="text-center py-8 text-stone-500 text-xs sm:text-sm">
                       Nenhum agendamento para hoje ainda. Clique em "Agendar Online" ou use o botão de agendamento manual.
                     </div>
                   ) : (
                     todayAppointments.map((apt) => (
                       <div
                         key={apt.id}
-                        className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                        className="p-3.5 sm:p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
                       >
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="text-sm font-serif font-bold text-[#D4AF37] tabular-nums">{apt.time}</span>
                             <span className="text-stone-500">·</span>
                             <h4 className="text-sm font-semibold text-white">{apt.clientName}</h4>
@@ -348,7 +346,7 @@ export const AdminDashboard: React.FC = () => {
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-white/5">
                           <span className="text-sm font-serif font-bold text-white tabular-nums">
                             R$ {apt.totalPrice.toFixed(2)}
                           </span>
@@ -356,7 +354,7 @@ export const AdminDashboard: React.FC = () => {
                           <select
                             value={apt.status}
                             onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
-                            className="text-xs bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-stone-300 focus:border-[#D4AF37] outline-none"
+                            className="text-xs bg-[#16161A] border border-white/15 rounded-lg px-2.5 py-1.5 text-stone-300 focus:border-[#D4AF37] outline-none"
                           >
                             <option value="confirmado" className="bg-[#141418]">Confirmado</option>
                             <option value="em_atendimento" className="bg-[#141418]">Em Atendimento</option>
@@ -371,9 +369,9 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Top Specialists Performance */}
-              <div className="lg:col-span-4 bg-[#121216] border border-white/10 rounded-2xl p-6 space-y-4">
+              <div className="lg:col-span-4 bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-6 space-y-4">
                 <div>
-                  <h3 className="text-lg font-serif font-bold text-white">Desempenho da Equipe</h3>
+                  <h3 className="text-base sm:text-lg font-serif font-bold text-white">Desempenho da Equipe</h3>
                   <p className="text-xs text-stone-400">Faturamento acumulado no mês</p>
                 </div>
 
@@ -408,44 +406,44 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 2: AGENDA & HORÁRIOS */}
         {adminTab === 'calendar' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             
             {/* Controls Bar */}
-            <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
               
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-stone-400">Data:</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 bg-white/[0.02] p-1.5 rounded-xl border border-white/5">
+                  <label className="text-xs text-stone-400 shrink-0">Data:</label>
                   <input
                     type="date"
                     value={calendarDate}
                     onChange={(e) => setCalendarDate(e.target.value)}
-                    className="px-3 py-1.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white focus:border-[#D4AF37] outline-none"
+                    className="w-full bg-transparent text-xs text-white outline-none"
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-stone-400">Profissional:</label>
+                <div className="flex items-center gap-2 bg-white/[0.02] p-1.5 rounded-xl border border-white/5">
+                  <label className="text-xs text-stone-400 shrink-0">Especialista:</label>
                   <select
                     value={specialistFilter}
                     onChange={(e) => setSpecialistFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white focus:border-[#D4AF37] outline-none"
+                    className="w-full bg-transparent text-xs text-white outline-none"
                   >
-                    <option value="todos" className="bg-[#141418]">Todos os Especialistas</option>
+                    <option value="todos" className="bg-[#141418]">Todos</option>
                     {specialists.map(s => (
                       <option key={s.id} value={s.id} className="bg-[#141418]">{s.name}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-stone-400">Status:</label>
+                <div className="flex items-center gap-2 bg-white/[0.02] p-1.5 rounded-xl border border-white/5">
+                  <label className="text-xs text-stone-400 shrink-0">Status:</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-1.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white focus:border-[#D4AF37] outline-none"
+                    className="w-full bg-transparent text-xs text-white outline-none"
                   >
-                    <option value="todos" className="bg-[#141418]">Todos os Status</option>
+                    <option value="todos" className="bg-[#141418]">Todos</option>
                     <option value="confirmado" className="bg-[#141418]">Confirmado</option>
                     <option value="em_atendimento" className="bg-[#141418]">Em Atendimento</option>
                     <option value="concluido" className="bg-[#141418]">Concluído</option>
@@ -456,7 +454,7 @@ export const AdminDashboard: React.FC = () => {
 
               <button
                 onClick={() => setIsManualAptOpen(true)}
-                className="px-4 py-2 text-xs font-semibold text-[#0D0D10] bg-gold-gradient hover:opacity-95 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="w-full md:w-auto px-4 py-2.5 text-xs font-semibold text-[#0D0D10] bg-gold-gradient hover:opacity-95 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Agendamento Manual</span>
@@ -466,11 +464,11 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Manual Appointment Modal */}
             {isManualAptOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-                <div className="bg-[#141418] border border-[#D4AF37]/40 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                <div className="bg-[#141418] border border-[#D4AF37]/40 rounded-2xl p-5 sm:p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <h3 className="text-lg font-serif font-bold text-white">Inserir Agendamento Manual</h3>
-                    <button onClick={() => setIsManualAptOpen(false)} className="text-stone-400 hover:text-white">
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white">Inserir Agendamento Manual</h3>
+                    <button onClick={() => setIsManualAptOpen(false)} className="text-stone-400 hover:text-white p-1">
                       ✕
                     </button>
                   </div>
@@ -488,7 +486,7 @@ export const AdminDashboard: React.FC = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-stone-300 font-semibold block mb-1">WhatsApp</label>
                         <input
@@ -510,7 +508,7 @@ export const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-stone-300 font-semibold block mb-1">Serviço</label>
                         <select
@@ -542,7 +540,7 @@ export const AdminDashboard: React.FC = () => {
                       <label className="text-stone-300 font-semibold block mb-1">Observações Especiais</label>
                       <input
                         type="text"
-                        placeholder="Ex: Primeira vez na Maison, prefere atendimento silencioso"
+                        placeholder="Ex: Primeira vez na Maison"
                         value={manualNotes}
                         onChange={(e) => setManualNotes(e.target.value)}
                         className="w-full px-3 py-2 bg-white/5 border border-white/15 rounded-lg text-white outline-none focus:border-[#D4AF37]"
@@ -569,8 +567,94 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Appointments Table */}
-            <div className="bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+            {/* MOBILE NATIVE APP VIEW FOR AGENDA (Shown on screens < md) */}
+            <div className="md:hidden space-y-3">
+              {filteredAppointments.length === 0 ? (
+                <div className="p-8 text-center text-stone-500 bg-[#121216] rounded-2xl border border-white/10 text-xs">
+                  Nenhum agendamento encontrado para este filtro.
+                </div>
+              ) : (
+                filteredAppointments.map((apt) => (
+                  <div 
+                    key={apt.id} 
+                    className="p-4 rounded-2xl bg-[#141418] border border-white/10 space-y-3 shadow-md"
+                  >
+                    {/* Header: Date, Time & Status */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-serif font-bold text-[#D4AF37] tabular-nums">
+                          {apt.time}
+                        </span>
+                        <span className="text-xs text-stone-400">
+                          ({apt.date.split('-').reverse().join('/')})
+                        </span>
+                      </div>
+
+                      <select
+                        value={apt.status}
+                        onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
+                        className={`text-[11px] font-bold px-2 py-1 rounded-lg border outline-none ${
+                          apt.status === 'em_atendimento' ? 'bg-amber-400/15 border-amber-400/30 text-amber-400' :
+                          apt.status === 'concluido' ? 'bg-emerald-400/15 border-emerald-400/30 text-emerald-400' :
+                          apt.status === 'cancelado' ? 'bg-rose-400/15 border-rose-400/30 text-rose-400' :
+                          'bg-blue-400/15 border-blue-400/30 text-blue-400'
+                        }`}
+                      >
+                        <option value="confirmado" className="bg-[#141418] text-white">Confirmado</option>
+                        <option value="em_atendimento" className="bg-[#141418] text-white">Em Atendimento</option>
+                        <option value="concluido" className="bg-[#141418] text-white">Concluído</option>
+                        <option value="cancelado" className="bg-[#141418] text-white">Cancelado</option>
+                      </select>
+                    </div>
+
+                    {/* Client & Service info */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-white">{apt.clientName}</h4>
+                        <span className="font-serif font-bold text-[#D4AF37] text-sm tabular-nums">
+                          R$ {apt.totalPrice.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-300">
+                        {apt.serviceName}
+                      </p>
+                      <p className="text-[11px] text-stone-400">
+                        Especialista: <strong className="text-stone-200">{apt.specialistName}</strong> · Tel: {apt.clientPhone}
+                      </p>
+                      {apt.addOns && apt.addOns.length > 0 && (
+                        <p className="text-[10px] text-[#D4AF37]">
+                          + Mimos: {apt.addOns.join(', ')}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Footer Actions: WhatsApp & Trash */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                      <a
+                        href={`https://wa.me/55${apt.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${apt.clientName}! Confirmando seu horário na AURUM Maison para ${apt.date.split('-').reverse().join('/')} às ${apt.time}.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold flex items-center gap-1.5"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>Avisar no WhatsApp</span>
+                      </a>
+
+                      <button
+                        onClick={() => deleteAppointment(apt.id)}
+                        className="p-1.5 rounded-lg bg-rose-500/15 text-rose-400 text-xs hover:bg-rose-500/25"
+                        title="Excluir Agendamento"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* DESKTOP TABLE VIEW (Shown on screens >= md) */}
+            <div className="hidden md:block bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-white/[0.03] border-b border-white/10 text-stone-400 uppercase tracking-wider">
@@ -585,73 +669,67 @@ export const AdminDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-stone-300">
-                    {appointments
-                      .filter(a => {
-                        if (specialistFilter !== 'todos' && a.specialistId !== specialistFilter) return false;
-                        if (statusFilter !== 'todos' && a.status !== statusFilter) return false;
-                        return true;
-                      })
-                      .map((apt) => (
-                        <tr key={apt.id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="font-bold text-white font-serif text-sm tabular-nums">{apt.time}</span>
-                            <span className="text-[11px] text-stone-500 block">{apt.date.split('-').reverse().join('/')}</span>
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="font-semibold text-white block">{apt.clientName}</span>
-                            <span className="text-stone-400 text-[11px]">{apt.clientPhone}</span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="font-medium text-stone-200 block">{apt.serviceName}</span>
-                            {apt.addOns && apt.addOns.length > 0 && (
-                              <span className="text-[10px] text-[#D4AF37] block">+{apt.addOns.join(', ')}</span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className="text-stone-200">{apt.specialistName}</span>
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-[#D4AF37] tabular-nums text-sm">
-                            R$ {apt.totalPrice.toFixed(2)}
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <select
-                              value={apt.status}
-                              onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
-                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border outline-none ${
-                                apt.status === 'em_atendimento' ? 'bg-amber-400/15 border-amber-400/30 text-amber-400' :
-                                apt.status === 'concluido' ? 'bg-emerald-400/15 border-emerald-400/30 text-emerald-400' :
-                                apt.status === 'cancelado' ? 'bg-rose-400/15 border-rose-400/30 text-rose-400' :
-                                'bg-blue-400/15 border-blue-400/30 text-blue-400'
-                              }`}
+                    {filteredAppointments.map((apt) => (
+                      <tr key={apt.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="font-bold text-white font-serif text-sm tabular-nums">{apt.time}</span>
+                          <span className="text-[11px] text-stone-500 block">{apt.date.split('-').reverse().join('/')}</span>
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="font-semibold text-white block">{apt.clientName}</span>
+                          <span className="text-stone-400 text-[11px]">{apt.clientPhone}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-medium text-stone-200 block">{apt.serviceName}</span>
+                          {apt.addOns && apt.addOns.length > 0 && (
+                            <span className="text-[10px] text-[#D4AF37] block">+{apt.addOns.join(', ')}</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <span className="text-stone-200">{apt.specialistName}</span>
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-[#D4AF37] tabular-nums text-sm">
+                          R$ {apt.totalPrice.toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          <select
+                            value={apt.status}
+                            onChange={(e) => updateAppointmentStatus(apt.id, e.target.value as AppointmentStatus)}
+                            className={`text-[11px] font-bold px-2 py-1 rounded-lg border outline-none ${
+                              apt.status === 'em_atendimento' ? 'bg-amber-400/15 border-amber-400/30 text-amber-400' :
+                              apt.status === 'concluido' ? 'bg-emerald-400/15 border-emerald-400/30 text-emerald-400' :
+                              apt.status === 'cancelado' ? 'bg-rose-400/15 border-rose-400/30 text-rose-400' :
+                              'bg-blue-400/15 border-blue-400/30 text-blue-400'
+                            }`}
+                          >
+                            <option value="confirmado" className="bg-[#141418] text-white">Confirmado</option>
+                            <option value="em_atendimento" className="bg-[#141418] text-white">Em Atendimento</option>
+                            <option value="concluido" className="bg-[#141418] text-white">Concluído</option>
+                            <option value="cancelado" className="bg-[#141418] text-white">Cancelado</option>
+                          </select>
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <a
+                              href={`https://wa.me/55${apt.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${apt.clientName}! Confirmando seu horário na AURUM Maison para dia ${apt.date.split('-').reverse().join('/')} às ${apt.time}.`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 transition-colors"
+                              title="Enviar lembrete WhatsApp"
                             >
-                              <option value="confirmado" className="bg-[#141418] text-white">Confirmado</option>
-                              <option value="em_atendimento" className="bg-[#141418] text-white">Em Atendimento</option>
-                              <option value="concluido" className="bg-[#141418] text-white">Concluído</option>
-                              <option value="cancelado" className="bg-[#141418] text-white">Cancelado</option>
-                            </select>
-                          </td>
-                          <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                            <div className="inline-flex items-center gap-1.5">
-                              <a
-                                href={`https://wa.me/55${apt.clientPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá ${apt.clientName}! Confirmando seu horário na AURUM Maison para dia ${apt.date.split('-').reverse().join('/')} às ${apt.time}.`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 transition-colors"
-                                title="Enviar lembrete WhatsApp"
-                              >
-                                <MessageCircle className="w-3.5 h-3.5" />
-                              </a>
-                              <button
-                                onClick={() => deleteAppointment(apt.id)}
-                                className="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 transition-colors"
-                                title="Excluir Agendamento"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                            <button
+                              onClick={() => deleteAppointment(apt.id)}
+                              className="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 transition-colors"
+                              title="Excluir Agendamento"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -662,29 +740,29 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 3: CONTROLE DE ESTOQUE */}
         {adminTab === 'stock' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             
             {/* Top Stock Summary cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Total de Itens em Estoque</span>
-                <h3 className="text-2xl font-serif font-bold text-white tabular-nums">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-white tabular-nums">
                   {stock.reduce((sum, i) => sum + i.quantity, 0)} unidades
                 </h3>
                 <span className="text-[11px] text-stone-500">{stock.length} produtos cadastrados</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Valor Imobilizado em Estoque</span>
-                <h3 className="text-2xl font-serif font-bold text-[#D4AF37] tabular-nums">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#D4AF37] tabular-nums">
                   R$ {totalStockValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </h3>
-                <span className="text-[11px] text-stone-500">Custo de aquisição</span>
+                <span className="text-[11px] text-stone-500">Custo total de reposição</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Itens em Nível Crítico</span>
-                <h3 className="text-2xl font-serif font-bold text-rose-400 tabular-nums">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-rose-400 tabular-nums">
                   {lowStockItems.length} alertas
                 </h3>
                 <span className="text-[11px] text-rose-300">Abaixo do limite mínimo</span>
@@ -692,13 +770,13 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Actions & Filters */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-xs text-stone-400">Filtrar Categoria:</label>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 bg-[#121216] p-2 rounded-xl border border-white/10">
+                <label className="text-xs text-stone-400 shrink-0">Categoria:</label>
                 <select
                   value={stockCategoryFilter}
                   onChange={(e) => setStockCategoryFilter(e.target.value)}
-                  className="px-3 py-1.5 bg-white/5 border border-white/15 rounded-xl text-xs text-white focus:border-[#D4AF37] outline-none"
+                  className="w-full bg-transparent text-xs text-white outline-none"
                 >
                   <option value="todos" className="bg-[#141418]">Todas as Categorias</option>
                   <option value="capilar" className="bg-[#141418]">Tratamentos Capilares</option>
@@ -711,7 +789,7 @@ export const AdminDashboard: React.FC = () => {
 
               <button
                 onClick={() => setIsAddProductOpen(true)}
-                className="px-4 py-2 text-xs font-semibold text-[#0D0D10] bg-gold-gradient hover:opacity-95 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                className="px-4 py-2.5 text-xs font-semibold text-[#0D0D10] bg-gold-gradient hover:opacity-95 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Adicionar Novo Produto</span>
@@ -720,11 +798,11 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Add Product Modal */}
             {isAddProductOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-                <div className="bg-[#141418] border border-[#D4AF37]/40 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+                <div className="bg-[#141418] border border-[#D4AF37]/40 rounded-2xl p-5 sm:p-6 max-w-lg w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <h3 className="text-lg font-serif font-bold text-white">Cadastrar Produto / Insumo</h3>
-                    <button onClick={() => setIsAddProductOpen(false)} className="text-stone-400 hover:text-white">✕</button>
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-white">Cadastrar Produto / Insumo</h3>
+                    <button onClick={() => setIsAddProductOpen(false)} className="text-stone-400 hover:text-white p-1">✕</button>
                   </div>
 
                   <form onSubmit={handleCreateNewProduct} className="space-y-3.5 text-xs">
@@ -740,7 +818,7 @@ export const AdminDashboard: React.FC = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="text-stone-300 font-semibold block mb-1">Marca / Fornecedor</label>
                         <input
@@ -822,8 +900,74 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Stock Table */}
-            <div className="bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+            {/* MOBILE NATIVE APP VIEW FOR STOCK (Screens < md) */}
+            <div className="md:hidden space-y-3">
+              {filteredStock.map((item) => {
+                const isLow = item.quantity <= item.minThreshold;
+                return (
+                  <div key={item.id} className="p-4 rounded-2xl bg-[#141418] border border-white/10 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-white">{item.name}</h4>
+                        <span className="text-[11px] text-[#D4AF37] font-medium">{item.brand} · SKU: {item.sku}</span>
+                      </div>
+                      {isLow ? (
+                        <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full shrink-0">
+                          Crítico (Mín: {item.minThreshold})
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full shrink-0">
+                          Ok
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-stone-400 pt-1">
+                      <div>
+                        <span>Custo Unitário:</span>
+                        <strong className="text-stone-200 block">R$ {item.unitCost.toFixed(2)}</strong>
+                      </div>
+                      <div>
+                        <span>Preço de Venda:</span>
+                        <strong className="text-[#D4AF37] block font-serif">
+                          {item.salePrice > 0 ? `R$ ${item.salePrice.toFixed(2)}` : 'Uso Interno'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* Quantity Adjustment Bar with big thumb touch targets */}
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-stone-400">Saldo:</span>
+                        <span className="text-base font-serif font-bold text-white tabular-nums">
+                          {item.quantity} unidades
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateStockQuantity(item.id, -1)}
+                          className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-stone-200 font-bold text-base flex items-center justify-center transition-all"
+                          title="Subtrair 1 unidade"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => updateStockQuantity(item.id, +1)}
+                          className="w-9 h-9 rounded-xl bg-gold-gradient active:scale-95 text-black font-bold text-base flex items-center justify-center shadow-md transition-all"
+                          title="Adicionar 1 unidade"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* DESKTOP TABLE VIEW FOR STOCK (Screens >= md) */}
+            <div className="hidden md:block bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-white/[0.03] border-b border-white/10 text-stone-400 uppercase tracking-wider">
@@ -838,64 +982,62 @@ export const AdminDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-stone-300">
-                    {stock
-                      .filter(item => stockCategoryFilter === 'todos' || item.category === stockCategoryFilter)
-                      .map((item) => {
-                        const isLow = item.quantity <= item.minThreshold;
-                        return (
-                          <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-3.5 px-4">
-                              <span className="font-semibold text-white block">{item.name}</span>
-                              <span className="text-[11px] text-[#D4AF37]">{item.brand} · SKU: {item.sku}</span>
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              <span className="px-2 py-0.5 rounded bg-white/5 text-stone-300 text-[11px]">
-                                {item.type === 'revenda' ? 'Revenda' : 'Uso Interno'}
+                    {filteredStock.map((item) => {
+                      const isLow = item.quantity <= item.minThreshold;
+                      return (
+                        <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3.5 px-4">
+                            <span className="font-semibold text-white block">{item.name}</span>
+                            <span className="text-[11px] text-[#D4AF37]">{item.brand} · SKU: {item.sku}</span>
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-white/5 text-stone-300 text-[11px]">
+                              {item.type === 'revenda' ? 'Revenda' : 'Uso Interno'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-white text-sm tabular-nums">
+                            {item.quantity} un
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap tabular-nums">
+                            R$ {item.unitCost.toFixed(2)}
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap font-serif font-semibold text-[#D4AF37] tabular-nums">
+                            {item.salePrice > 0 ? `R$ ${item.salePrice.toFixed(2)}` : '—'}
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            {isLow ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-400/10 px-2.5 py-0.5 rounded-full">
+                                <AlertTriangle className="w-3 h-3" />
+                                Estoque Baixo (Mín: {item.minThreshold})
                               </span>
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap font-serif font-bold text-white text-sm tabular-nums">
-                              {item.quantity} un
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap tabular-nums">
-                              R$ {item.unitCost.toFixed(2)}
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap font-serif font-semibold text-[#D4AF37] tabular-nums">
-                              {item.salePrice > 0 ? `R$ ${item.salePrice.toFixed(2)}` : '—'}
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap">
-                              {isLow ? (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-400/10 px-2.5 py-0.5 rounded-full">
-                                  <AlertTriangle className="w-3 h-3" />
-                                  Estoque Baixo (Mín: {item.minThreshold})
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-2.5 py-0.5 rounded-full">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  Regular
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 whitespace-nowrap text-right">
-                              <div className="inline-flex items-center gap-1.5">
-                                <button
-                                  onClick={() => updateStockQuantity(item.id, -1)}
-                                  className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-stone-300 font-bold flex items-center justify-center"
-                                  title="Dar baixa em 1 unidade"
-                                >
-                                  -
-                                </button>
-                                <button
-                                  onClick={() => updateStockQuantity(item.id, +1)}
-                                  className="w-7 h-7 rounded-lg bg-gold-gradient text-black font-bold flex items-center justify-center shadow-sm"
-                                  title="Adicionar 1 unidade"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-400/10 px-2.5 py-0.5 rounded-full">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Regular
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                onClick={() => updateStockQuantity(item.id, -1)}
+                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-stone-300 font-bold flex items-center justify-center"
+                                title="Dar baixa em 1 unidade"
+                              >
+                                -
+                              </button>
+                              <button
+                                onClick={() => updateStockQuantity(item.id, +1)}
+                                className="w-7 h-7 rounded-lg bg-gold-gradient text-black font-bold flex items-center justify-center shadow-sm"
+                                title="Adicionar 1 unidade"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -906,11 +1048,11 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 4: RELATÓRIOS FINANCEIROS MENSAIS */}
         {adminTab === 'financial' && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             
             {/* Header Summary */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Receita Bruta Total</span>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white tabular-nums">
                   R$ {financials.reduce((sum, f) => sum + f.revenue, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -918,7 +1060,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-[11px] text-emerald-400">+18% no trimestre</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Comissões Pagas à Equipe</span>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold text-stone-300 tabular-nums">
                   R$ {financials.reduce((sum, f) => sum + f.commissions, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -926,7 +1068,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-[11px] text-stone-500">Média 38% por atendimento</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-white/10 space-y-1">
                 <span className="text-xs text-stone-400">Despesas Operacionais & Insumos</span>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold text-stone-300 tabular-nums">
                   R$ {financials.reduce((sum, f) => sum + f.expenses, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -934,7 +1076,7 @@ export const AdminDashboard: React.FC = () => {
                 <span className="text-[11px] text-stone-500">Produtos, aluguel & energia</span>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#141418] border border-[#D4AF37]/40 space-y-1">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#141418] border border-[#D4AF37]/40 space-y-1">
                 <span className="text-xs text-[#D4AF37] font-semibold">Lucro Líquido Acumulado</span>
                 <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37] tabular-nums">
                   R$ {financials.reduce((sum, f) => sum + f.netProfit, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -944,9 +1086,9 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Monthly History Chart Simulation */}
-            <div className="bg-[#121216] border border-white/10 rounded-2xl p-6 space-y-6">
+            <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-6 space-y-6">
               <div>
-                <h3 className="text-lg font-serif font-bold text-white">Evolução de Faturamento & Margem Líquida</h3>
+                <h3 className="text-base sm:text-lg font-serif font-bold text-white">Evolução de Faturamento & Margem Líquida</h3>
                 <p className="text-xs text-stone-400">Comparativo mês a mês dos últimos 5 períodos</p>
               </div>
 
@@ -954,25 +1096,23 @@ export const AdminDashboard: React.FC = () => {
                 {financials.map((fin) => {
                   const maxRevenue = 200000;
                   const revPercent = Math.min(100, (fin.revenue / maxRevenue) * 100);
-                  const profitPercent = Math.min(100, (fin.netProfit / maxRevenue) * 100);
 
                   return (
-                    <div key={fin.month} className="space-y-2 p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1">
-                        <span className="font-semibold text-white">{fin.month}</span>
-                        <div className="flex items-center gap-4 text-[11px]">
-                          <span>Faturamento: <strong className="text-white font-serif tabular-nums">R$ {fin.revenue.toLocaleString('pt-BR')}</strong></span>
+                    <div key={fin.month} className="space-y-2 p-3 sm:p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1.5">
+                        <span className="font-bold text-white text-sm">{fin.month}</span>
+                        <div className="flex flex-wrap items-center gap-3 text-[11px]">
+                          <span>Receita: <strong className="text-white font-serif tabular-nums">R$ {fin.revenue.toLocaleString('pt-BR')}</strong></span>
                           <span>Comissões: <span className="text-stone-400 font-serif tabular-nums">R$ {fin.commissions.toLocaleString('pt-BR')}</span></span>
-                          <span>Lucro Líquido: <strong className="text-[#D4AF37] font-serif tabular-nums">R$ {fin.netProfit.toLocaleString('pt-BR')}</strong></span>
+                          <span>Lucro: <strong className="text-[#D4AF37] font-serif tabular-nums">R$ {fin.netProfit.toLocaleString('pt-BR')}</strong></span>
                         </div>
                       </div>
 
                       {/* Bar Visualization */}
                       <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden flex gap-1">
                         <div 
-                          className="h-full bg-gold-gradient rounded-full"
+                          className="h-full bg-gold-gradient rounded-full transition-all duration-700"
                           style={{ width: `${revPercent}%` }}
-                          title={`Receita: R$ ${fin.revenue}`}
                         />
                       </div>
                     </div>
@@ -986,27 +1126,82 @@ export const AdminDashboard: React.FC = () => {
 
         {/* TAB 5: CLUBE DE FIDELIDADE (CLUB PRIVILÈGE) */}
         {adminTab === 'loyalty' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             
-            <div className="bg-[#121216] border border-white/10 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="bg-[#121216] border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Crown className="w-4 h-4 text-[#D4AF37]" />
-                  <h3 className="text-lg font-serif font-bold text-white">Membros do Club Privilège VIP</h3>
+                  <h3 className="text-base sm:text-lg font-serif font-bold text-white">Membros do Club Privilège VIP</h3>
                 </div>
                 <p className="text-xs text-stone-400">Gestão de pontos de fidelidade, níveis de benefício e resgate de experiências.</p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/[0.03] px-3.5 py-2 rounded-xl border border-white/10">
                 <span className="text-xs text-stone-400">Total de Pontos Ativos:</span>
-                <span className="text-lg font-serif font-bold text-[#D4AF37] tabular-nums">
+                <span className="text-base sm:text-lg font-serif font-bold text-[#D4AF37] tabular-nums">
                   {loyaltyClients.reduce((sum, c) => sum + c.points, 0)} pts
                 </span>
               </div>
             </div>
 
-            {/* Clients Loyalty Table */}
-            <div className="bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+            {/* MOBILE NATIVE APP VIEW FOR LOYALTY (Screens < md) */}
+            <div className="md:hidden space-y-3">
+              {loyaltyClients.map((client) => (
+                <div key={client.id} className="p-4 rounded-2xl bg-[#141418] border border-white/10 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-white">{client.name}</h4>
+                      <span className="text-xs text-stone-400">{client.phone}</span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase ${
+                      client.tier === 'Black Edition' ? 'bg-[#D4AF37] text-black font-extrabold' :
+                      client.tier === 'Diamond' ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40' :
+                      client.tier === 'Gold' ? 'bg-amber-400/20 text-amber-400 border border-amber-400/30' :
+                      'bg-stone-500/20 text-stone-300 border border-stone-500/30'
+                    }`}>
+                      {client.tier}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-stone-400 pt-1">
+                    <div>
+                      <span>Saldo Atual:</span>
+                      <strong className="text-base font-serif font-bold text-[#D4AF37] block tabular-nums">
+                        {client.points} pts
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Total Gasto:</span>
+                      <strong className="text-white block font-serif tabular-nums">
+                        R$ {client.totalSpend.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
+                    <span className="text-[11px] text-stone-400">Fav: {client.favoriteSpecialist}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => addLoyaltyPoints(client.id, 100)}
+                        className="px-2.5 py-1.5 rounded-lg bg-[#D4AF37]/15 text-[#D4AF37] font-semibold text-xs active:scale-95 transition-transform"
+                      >
+                        +100 pts
+                      </button>
+                      <button
+                        onClick={() => redeemLoyaltyReward(client.id, loyaltyRewards[0].id)}
+                        className="px-2.5 py-1.5 rounded-lg bg-white/10 text-white text-xs active:scale-95 transition-transform"
+                      >
+                        Resgatar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW FOR LOYALTY (Screens >= md) */}
+            <div className="hidden md:block bg-[#121216] border border-white/10 rounded-2xl overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-white/[0.03] border-b border-white/10 text-stone-400 uppercase tracking-wider">
@@ -1081,18 +1276,18 @@ export const AdminDashboard: React.FC = () => {
         {/* TAB 6: EQUIPE & PROFISSIONAIS */}
         {adminTab === 'team' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {specialists.map((spec) => (
-                <div key={spec.id} className="p-6 rounded-2xl bg-[#141418] border border-white/10 space-y-4">
+                <div key={spec.id} className="p-5 sm:p-6 rounded-2xl bg-[#141418] border border-white/10 space-y-4">
                   <div className="flex items-center gap-3">
                     <img
                       src={spec.avatar}
                       alt={spec.name}
                       referrerPolicy="no-referrer"
-                      className="w-14 h-14 rounded-full object-cover border border-[#D4AF37]/40 shrink-0"
+                      className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border border-[#D4AF37]/40 shrink-0"
                     />
                     <div>
-                      <h4 className="text-base font-serif font-bold text-white">{spec.name}</h4>
+                      <h4 className="text-sm sm:text-base font-serif font-bold text-white">{spec.name}</h4>
                       <p className="text-xs text-[#D4AF37]">{spec.role.split('&')[0]}</p>
                     </div>
                   </div>
